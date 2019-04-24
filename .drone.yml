@@ -1,0 +1,20 @@
+---
+kind: pipeline
+name: insightmaker
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: publish
+  image: endian/drone-plugin-docker
+  privileged: true
+  settings:
+    repo: endian/insightmaker
+    auto_tag: true
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+...
