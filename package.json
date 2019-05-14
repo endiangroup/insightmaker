@@ -1,0 +1,15 @@
+{
+  "name": "insight-maker",
+  "version": "1.0.0",
+  "main": "electron.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^5.0.0"
+  },
+  "dependencies": {
+    "electron-reload": "^1.4.0",
+    "remote": "^0.2.6"
+  }
+}

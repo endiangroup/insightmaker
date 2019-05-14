@@ -14,7 +14,7 @@ function appendFileExtension(filename,extension) {
 function setTitle(filename) {
 	var title;
 	if(filename) {
-		title = filename+"| Insight Maker";
+		title = filename+" | Insight Maker";
 		
 	} else {
 		title = "Insight Maker";
@@ -56,18 +56,10 @@ var FileManagerWeb = new function() {
 	}
 	
 	this.saveModel = function() {
-		Ext.MessageBox.prompt('Model name', 'Enter name of model', function(btn, model_name){
-			if(btn=='cancel') {
-				return;
-			}
-			if (btn == 'ok'){
-				var xml_data = getModelXML2();
-				model_name=appendFileExtension(model_name,InsightMakerFileExtension);
-				self.set_filename(model_name);
-				downloadWebFile(model_name,xml_data);
-			}
-		});
-
+		var xml_data = getModelXML2();
+		model_name=appendFileExtension('model',InsightMakerFileExtension);
+		self.set_filename(model_name);
+		downloadWebFile(model_name,xml_data);
 	};
 	
 	this.loadModel = function() {

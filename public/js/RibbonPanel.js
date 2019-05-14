@@ -1087,7 +1087,7 @@ var RibbonPanel = function(graph, mainPanel, configPanel) {
 		collapsible: false,
 		tbar: new Ext.toolbar.Toolbar({
 			enableOverflow: true,
-			items: FileMenu.concat([
+			items: [
 
 				{
 					hidden: (!viewConfig.primitiveGroup),
@@ -1296,7 +1296,7 @@ var RibbonPanel = function(graph, mainPanel, configPanel) {
 					scope: this
 				},
 				'-', {
-					hidden: (!viewConfig.saveEnabled),
+					hidden: true,
 					text: getText('Save'),
 					glyph: 0xf0c7,
 					tooltip: getText('Save Insight') + ' ' + cmd("S"),
@@ -1639,9 +1639,7 @@ var RibbonPanel = function(graph, mainPanel, configPanel) {
 					href: '//InsightMaker.com',
 					tooltip: 'Insight Maker Home'
 				}
-				
-
-			])
+			]
 		})
 
 	});
