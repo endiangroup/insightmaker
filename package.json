@@ -1,15 +1,31 @@
 {
-  "name": "insight-maker",
-  "version": "1.0.0",
-  "main": "electron.js",
-  "scripts": {
-    "start": "electron ."
-  },
-  "devDependencies": {
-    "electron": "^5.0.0"
-  },
-  "dependencies": {
-    "electron-reload": "^1.4.0",
-    "remote": "^0.2.6"
-  }
+	"name": "insight-maker",
+	"build": {
+		"appId": "com.endian.insightmaker",
+		"mac": {
+			"category": "public.app-category.developer-tools"
+		}
+	},
+	"description": "InsightMaker electron port",
+	"author": "Endian.io",
+	"version": "1.0.0",
+	"main": "electron.js",
+	"scripts": {
+		"start": "electron .",
+		"pack": "electron-builder --dir",
+		"dist": "electron-builder --linux --mac"
+	},
+	"devDependencies": {
+		"electron": "^5.0.0",
+		"electron-builder": "^20.40.2"
+	},
+	"dependencies": {
+		"electron-reload": "^1.4.0",
+		"remote": "^0.2.6"
+	},
+	"repository": "https://github.com/endiangroup/insightmaker",
+	"keywords": [
+		"InsightMaker",
+		"System Dynamics"
+	]
 }
