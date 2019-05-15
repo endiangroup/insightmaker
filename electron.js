@@ -49,29 +49,43 @@ function newModel(menuItem, browserWindow, event) {
 }
 
 function openModel(menuItem, browserWindow, event) {
-	dialog.showOpenDialog(browserWindow, function (filePaths) {
-		if (filePaths === undefined) {
-			return;
-		}
+	let defaultPath = 'model.InsightMaker';
+	if (currentModelFile != '') {
+		defaultPath = currentModelFile
+	}
 
-		var filePath = filePaths[0];
+	dialog.showOpenDialog(browserWindow, 
+		{
+			defaultPath: defaultPath,
+		},
+		function (filePaths) {
+			if (filePaths === undefined) {
+				return;
+			}
 
-		try {
-			let contents = fs.readFileSync(filePath, 'utf-8');
-			browserWindow.webContents.executeJavaScript('importMXGraph(\''+contents+'\')');
-			currentModelFile = filePath;
-			currentModelHash = hashModelXML(contents)
-			setWindowTitle(browserWindow,filePath);
-		} catch (err) {
-			console.log('Error reading the file: ' + JSON.stringify(err));
-		}
-	});
+			var filePath = filePaths[0];
+
+			try {
+				let contents = fs.readFileSync(filePath, 'utf-8');
+				browserWindow.webContents.executeJavaScript('importMXGraph(\''+contents+'\')');
+				currentModelFile = filePath;
+				currentModelHash = hashModelXML(contents)
+				setWindowTitle(browserWindow,filePath);
+			} catch (err) {
+				console.log('Error reading the file: ' + JSON.stringify(err));
+			}
+		});
 }
 
 function saveModelAs(menuItem, browserWindow, event) {
 	return new Promise(function(resolve, reject) {
+		let defaultPath = 'model.InsightMaker';
+		if (currentModelFile != '') {
+			defaultPath = currentModelFile
+		}
+
 		dialog.showSaveDialog(browserWindow, {
-			defaultPath: 'model.InsightMaker',
+			defaultPath: defaultPath,
 		},
 			function (filePath) {
 				if (filePath === undefined) {
