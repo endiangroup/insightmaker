@@ -1,6 +1,7 @@
 const { app, Menu, MenuItem, BrowserWindow, dialog } = require('electron')
 const path = require('path'),
-	  fs = require('fs')
+	  fs = require('fs'),
+      crypto = require('crypto')
  
 // TODO: optional
 require('electron-reload')(__dirname, {
@@ -19,32 +20,36 @@ function createWindow () {
   // and load the index.html of the app.
   win.loadFile('public/index.html')
 
-  // Open the DevTools.
-  //win.webContents.openDevTools()
+	// Open the DevTools.
+	//win.webContents.openDevTools()
+	win.on('close', (e) => {
+		quitAndSaveIfRequested(win,e)
+	});
 
-  // Emitted when the window is closed.
-  win.on('closed', () => {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    win = null
-  })
+	// Emitted when the window is closed.
+	win.on('closed', () => {
+		// Dereference the window object, usually you would store windows
+		// in an array if your app supports multi windows, this is the time
+		// when you should delete the corresponding element.
+		win = null
+	})
 }
 
-let currentModelFile = '';
+let currentModelFile = '',
+	currentModelHash = ''
 
 function setWindowTitle(browserWindow,title) {
-    browserWindow.webContents.executeJavaScript('setTitle(\''+title+'\')');
+	browserWindow.webContents.executeJavaScript('setTitle(\''+title+'\')');
 }
 
 function newModel(menuItem, browserWindow, event) {
-    browserWindow.webContents.executeJavaScript('FileManagerWeb.newModel()');
+	browserWindow.webContents.executeJavaScript('FileManagerWeb.newModel()');
 	currentModelFile = '';
 	setWindowTitle(browserWindow, 'Untitled Insight')
 }
 
 function openModel(menuItem, browserWindow, event) {
-	dialog.showOpenDialog(function (filePaths) {
+	dialog.showOpenDialog(browserWindow, function (filePaths) {
 		if (filePaths === undefined) {
 			return;
 		}
@@ -55,6 +60,7 @@ function openModel(menuItem, browserWindow, event) {
 			let contents = fs.readFileSync(filePath, 'utf-8');
 			browserWindow.webContents.executeJavaScript('importMXGraph(\''+contents+'\')');
 			currentModelFile = filePath;
+			currentModelHash = hashModelXML(contents)
 			setWindowTitle(browserWindow,filePath);
 		} catch (err) {
 			console.log('Error reading the file: ' + JSON.stringify(err));
@@ -63,116 +69,179 @@ function openModel(menuItem, browserWindow, event) {
 }
 
 function saveModelAs(menuItem, browserWindow, event) {
-	dialog.showSaveDialog({
-		defaultPath: 'model.InsightMaker',
-	},
-	function (filePath) {
-		if (filePath === undefined) {
-			return;
-		}
+	return new Promise(function(resolve, reject) {
+		dialog.showSaveDialog(browserWindow, {
+			defaultPath: 'model.InsightMaker',
+		},
+			function (filePath) {
+				if (filePath === undefined) {
+					return;
+				}
 
-		currentModelFile = filePath;
+				currentModelFile = filePath;
 
-		browserWindow.webContents.executeJavaScript('getModelXML2()', function(xml) {
-			fs.writeFile(filePath, xml, function (err) {
-				setWindowTitle(browserWindow,filePath);
+				browserWindow.webContents.executeJavaScript('getModelXML2()', function(xml) {
+					fs.writeFile(filePath, xml, function (err) {
+						if (err) {
+							reject(err)
+						}
+
+						currentModelHash = hashModelXML(xml)
+						setWindowTitle(browserWindow,filePath);
+						resolve()
+					});
+				});
 			});
-		});
-	});
+	})
 }
 
 function saveModel(menuItem, browserWindow, event) {
 	if (currentModelFile == '') {
-		saveModelAs(menuItem,browserWindow,event)
+		return saveModelAs(menuItem,browserWindow,event)
+	}
+
+	return new Promise(function(resolve, reject) {
+		browserWindow.webContents.executeJavaScript('getModelXML2()', function(xml) {
+			fs.writeFile(currentModelFile, xml, function (err) {
+				if (err) {
+					reject(err)
+				}
+				currentModelHash = hashModelXML(xml)
+				resolve()
+			});
+		});
+	})
+}
+
+let exitConfirmed = false
+
+function quitAndSaveIfRequested(browserWindow, event) {
+	if (exitConfirmed) {
 		return
 	}
 
-	browserWindow.webContents.executeJavaScript('getModelXML2()', function(xml) {
-		fs.writeFile(currentModelFile, xml, function (err) {
+	event.preventDefault()
+	getModelXML(browserWindow).then((xml) => {	
+
+		if (hashModelXML(xml) == currentModelHash) {
+			exitConfirmed = true
+			browserWindow.close()
+			return
+		}
+
+		var choice = dialog.showMessageBox(
+			browserWindow,
+			{
+				type: 'question',
+				buttons: [ 'No, discard changes', 'Yes, save changes' ],
+				title: 'Confirm',
+				message: 'You have unsaved changes! Would you like to save before exiting?'
+			}
+		);
+
+		if(choice == 1){
+			saveModel( null, browserWindow, event ).then(() => {
+				browserWindow.close()
+			})
+		} else {
+			exitConfirmed = true
+			browserWindow.close()
+		}
+	})
+}
+
+function hashModelXML(xml) {
+	return crypto.createHash('md5').update(xml).digest('hex')
+}
+
+function getModelXML(browserWindow) {
+	return new Promise(function(resolve, reject) {
+		browserWindow.webContents.executeJavaScript('getModelXML2()', function(xml) {
+			resolve(xml)
 		});
-	});
+	})
 }
 
 const template = [
-   {
-      label: 'File',
-      submenu: [
-         {
-            label: 'New model',
-			accelerator: 'CommandOrControl+N',
-			click: newModel,
-         },
-         {
-            label: 'Open model...',
-			accelerator: 'CommandOrControl+O',
-			click: openModel,
-         },
-         {
-            label: 'Save model',
-			accelerator: 'CommandOrControl+S',
-			click: saveModel,
-         },
-         {
-            label: 'Save model as...',
-			accelerator: 'CommandOrControl+Shift+S',
-			click: saveModelAs,
-         },
-      ]
-   },
-  
-   {
-      label: 'Edit',
-      submenu: [
-         {
-            role: 'undo'
-         },
-         {
-            role: 'redo'
-         },
-         {
-            type: 'separator'
-         },
-         {
-            role: 'cut'
-         },
-         {
-            role: 'copy'
-         },
-         {
-            role: 'paste'
-         }
-      ]
-   },
-   
-   {
-      label: 'View',
-      submenu: [
-         {
-            role: 'reload'
-         },
-         {
-            role: 'toggledevtools'
-         },
-         {
-            type: 'separator'
-         },
-         {
-            role: 'resetzoom'
-         },
-         {
-            role: 'zoomin'
-         },
-         {
-            role: 'zoomout'
-         },
-         {
-            type: 'separator'
-         },
-         {
-            role: 'togglefullscreen'
-         }
-      ]
-   },
+	{
+		label: 'File',
+		submenu: [
+			{
+				label: 'New model',
+				accelerator: 'CommandOrControl+N',
+				click: newModel,
+			},
+			{
+				label: 'Open model...',
+				accelerator: 'CommandOrControl+O',
+				click: openModel,
+			},
+			{
+				label: 'Save model',
+				accelerator: 'CommandOrControl+S',
+				click: saveModel,
+			},
+			{
+				label: 'Save model as...',
+				accelerator: 'CommandOrControl+Shift+S',
+				click: saveModelAs,
+			},
+		]
+	},
+
+	{
+		label: 'Edit',
+		submenu: [
+			{
+				role: 'undo'
+			},
+			{
+				role: 'redo'
+			},
+			{
+				type: 'separator'
+			},
+			{
+				role: 'cut'
+			},
+			{
+				role: 'copy'
+			},
+			{
+				role: 'paste'
+			}
+		]
+	},
+
+	{
+		label: 'View',
+		submenu: [
+			{
+				role: 'reload'
+			},
+			{
+				role: 'toggledevtools'
+			},
+			{
+				type: 'separator'
+			},
+			{
+				role: 'resetzoom'
+			},
+			{
+				role: 'zoomin'
+			},
+			{
+				role: 'zoomout'
+			},
+			{
+				type: 'separator'
+			},
+			{
+				role: 'togglefullscreen'
+			}
+		]
+	},
 ]
 
 const menu = Menu.buildFromTemplate(template)
@@ -185,17 +254,17 @@ app.on('ready', createWindow)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
-  // On macOS it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+	// On macOS it is common for applications and their menu bar
+	// to stay active until the user quits explicitly with Cmd + Q
+	if (process.platform !== 'darwin') {
+		app.quit()
+	}
 })
 
 app.on('activate', () => {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (win === null) {
-    createWindow()
-  }
+	// On macOS it's common to re-create a window in the app when the
+	// dock icon is clicked and there are no other windows open.
+	if (win === null) {
+		createWindow()
+	}
 })
