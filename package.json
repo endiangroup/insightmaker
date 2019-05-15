@@ -1,5 +1,5 @@
 {
-	"name": "insight-maker",
+	"name": "Insight Maker",
 	"build": {
 		"appId": "com.endian.insightmaker",
 		"mac": {
@@ -11,7 +11,7 @@
 	},
 	"description": "InsightMaker electron port",
 	"author": "Endian.io",
-	"version": "1.0.0-rc1",
+	"version": "1.0.0-rc2",
 	"main": "electron.js",
 	"scripts": {
 		"start": "electron .",
