@@ -1,5 +1,5 @@
 {
-	"name": "Insight Maker",
+	"name": "InsightMaker",
 	"build": {
 		"appId": "com.endian.insightmaker",
 		"mac": {
