@@ -200,6 +200,12 @@ const template = [
 				accelerator: 'CommandOrControl+Shift+S',
 				click: saveModelAs,
 			},
+			{
+				type: 'separator'
+			},
+			{
+				role: 'quit'
+			},
 		]
 	},
 
