@@ -11,7 +11,7 @@
 	},
 	"description": "InsightMaker electron port",
 	"author": "Endian.io",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"main": "electron.js",
 	"scripts": {
 		"start": "electron .",
@@ -24,6 +24,7 @@
 	},
 	"dependencies": {
 		"electron-reload": "^1.4.0",
+		"electron-updater": "^4.0.6",
 		"remote": "^0.2.6"
 	},
 	"repository": "https://github.com/endiangroup/insightmaker",
