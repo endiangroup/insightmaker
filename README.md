@@ -1,10 +1,16 @@
 # Insight Maker
 
+[![Build Status](https://travis-ci.org/endiangroup/insightmaker.svg?branch=master)](https://travis-ci.org/endiangroup/insightmaker)
+
 Open-source central command for InsightMaker.com: System Dynamics, Differential Equations, and Agent Based Modeling in the web browser.
+
+## Running the native application
+
+Download a binary from the [current release](https://github.com/endiangroup/insightmaker/releases/latest).
 
 ## Running the local version with Docker
 
-To use port `8080`:
+If you want a web version, and for some reason don't wan to use [insightmaker.com](https://insightmaker.com), we provide a [docker image](https://hub.docker.com/r/endian/insightmaker). To use port `8080`:
 
 ```
 docker run -p 8080:80 endian/insightmaker
