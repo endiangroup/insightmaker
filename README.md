@@ -6,7 +6,7 @@ Open-source central command for InsightMaker.com: System Dynamics, Differential 
 
 ## Running the native application
 
-Download a binary from the [current release](https://github.com/endiangroup/insightmaker/releases/latest).
+Download a binary from the [current release](https://github.com/endiangroup/insightmaker/releases/latest). The OS X and Windows applications are not currently signed, so you'll have to ignore warnings in order to install them
 
 ## Running the local version with Docker
 
